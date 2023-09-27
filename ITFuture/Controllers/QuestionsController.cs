@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -49,6 +50,7 @@ namespace ITFuture.Controllers
         }
 
         // GET: Questions/Create
+        [Authorize]
         public IActionResult Create()
         {
             //ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id");
@@ -59,6 +61,7 @@ namespace ITFuture.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Title,Description,IdentityUserId")] Question question)
         {
@@ -73,6 +76,7 @@ namespace ITFuture.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddAnswer([Bind("Id,Content,QuestionId,IdentityUserId")] Answer answer)
         {
@@ -93,6 +97,7 @@ namespace ITFuture.Controllers
 
 
         // GET: Questions/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || _context.Questions == null)
@@ -101,7 +106,7 @@ namespace ITFuture.Controllers
             }
 
             var question = await _context.Questions.FindAsync(id);
-            if (question == null)
+            if (question.IdentityUserId != User.FindFirstValue(ClaimTypes.NameIdentifier))
             {
                 return NotFound();
             }
@@ -113,6 +118,7 @@ namespace ITFuture.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,IdentityUserId")] Question question)
         {
@@ -146,6 +152,7 @@ namespace ITFuture.Controllers
         }
 
         // GET: Questions/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null || _context.Questions == null)
@@ -156,7 +163,7 @@ namespace ITFuture.Controllers
             var question = await _context.Questions
                 .Include(q => q.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (question == null)
+            if (question.IdentityUserId != User.FindFirstValue(ClaimTypes.NameIdentifier))
             {
                 return NotFound();
             }
@@ -166,6 +173,7 @@ namespace ITFuture.Controllers
 
         // POST: Questions/Delete/5
         [HttpPost, ActionName("Delete")]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
