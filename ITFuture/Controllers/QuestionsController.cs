@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ITFuture.Data;
 using ITFuture.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ITFuture.Controllers
 {
@@ -46,6 +47,7 @@ namespace ITFuture.Controllers
         }
 
         // GET: Questions/Create
+        [Authorize]
         public IActionResult Create()
         {
             ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id");
@@ -57,6 +59,7 @@ namespace ITFuture.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Create([Bind("Id,Title,Description,IdentityUserId")] Question question)
         {
             if (ModelState.IsValid)
@@ -70,6 +73,7 @@ namespace ITFuture.Controllers
         }
 
         // GET: Questions/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || _context.Questions == null)
@@ -89,6 +93,7 @@ namespace ITFuture.Controllers
         // POST: Questions/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,IdentityUserId")] Question question)
@@ -123,6 +128,7 @@ namespace ITFuture.Controllers
         }
 
         // GET: Questions/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null || _context.Questions == null)
@@ -142,6 +148,7 @@ namespace ITFuture.Controllers
         }
 
         // POST: Questions/Delete/5
+        [Authorize]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
