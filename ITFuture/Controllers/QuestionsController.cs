@@ -23,7 +23,7 @@ namespace ITFuture.Controllers
         // GET: Questions
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Questions.Include(q => q.User);
+            var applicationDbContext = _context.Questions.Include(q => q.User).Include(a=>a.Answers);
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -36,7 +36,9 @@ namespace ITFuture.Controllers
             }
 
             var question = await _context.Questions
-                .Include(q => q.User)
+                .Include(q=>q.User)
+                .Include(c=>c.Answers)
+                .ThenInclude(q => q.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (question == null)
             {
@@ -47,10 +49,9 @@ namespace ITFuture.Controllers
         }
 
         // GET: Questions/Create
-        [Authorize]
         public IActionResult Create()
         {
-            ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id");
+            //ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id");
             return View();
         }
 
@@ -59,7 +60,6 @@ namespace ITFuture.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize]
         public async Task<IActionResult> Create([Bind("Id,Title,Description,IdentityUserId")] Question question)
         {
             if (ModelState.IsValid)
@@ -68,12 +68,31 @@ namespace ITFuture.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id", question.IdentityUserId);
+            //ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id", question.IdentityUserId);
             return View(question);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddAnswer([Bind("Id,Content,QuestionId,IdentityUserId")] Answer answer)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Add(answer);
+                await _context.SaveChangesAsync();
+                //return RedirectToAction(nameof(Index));
+            }
+            //ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id", question.IdentityUserId);
+            var question = await _context.Questions
+                .Include(q=>q.User)
+                .Include(a => a.Answers)
+                .ThenInclude(q => q.User)
+                .FirstOrDefaultAsync(q => q.Id == answer.QuestionId);
+            return View("Details",question);
+        }
+
+
         // GET: Questions/Edit/5
-        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || _context.Questions == null)
@@ -93,7 +112,6 @@ namespace ITFuture.Controllers
         // POST: Questions/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,IdentityUserId")] Question question)
@@ -128,7 +146,6 @@ namespace ITFuture.Controllers
         }
 
         // GET: Questions/Delete/5
-        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null || _context.Questions == null)
@@ -148,7 +165,6 @@ namespace ITFuture.Controllers
         }
 
         // POST: Questions/Delete/5
-        [Authorize]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
